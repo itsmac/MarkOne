@@ -1,9 +1,6 @@
-# from rest_framework_simplejwt.serializers import TokenObtainSerializer
-# from typing_extensions import Required
-from django.contrib.auth import models
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from rest_framework import validators
+from rest_framework.response import Response
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 # from rest_framework.utils import serializer_helpers
@@ -77,8 +74,8 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-
-        if User.pk != instance.pk: raise serializers.ValidationError({"Auth Error": "User Not authenticated."})
+        user = self.context['request'].user
+        if user.pk != instance.pk: raise serializers.ValidationError({"Auth Error": "User Not authenticated."})
 
         instance.first_name = validated_data['first_name']
         instance.last_name = validated_data['last_name']
@@ -88,7 +85,36 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+    
 
+class UpdatePasswordSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = User
+        fields = ('password','confirm_password','oldpassword')
+    
+    def validate(self, attrs):
+        if attrs['password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"password": "Password does not match !"})
+        
+    def validate_existing_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value) :
+            raise serializers.ValidationError({"password":"Existing incorrect password"})
+        return Response({"Success": True})
+        # return super().validate(attrs)
+        
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+        
+        if user.pk != instance.pk : raise serializers.ValidationError({"Auth Error": "User Not authenticated."})
+        instance.set_password(validated_data['password'])
+        instance.save()
+        return Response({
+            "Success": True,
+            "data" : instance
+            })
+    
 
 
 
