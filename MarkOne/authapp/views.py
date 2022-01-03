@@ -9,20 +9,21 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.response import Response
 from rest_framework import status
+from .models import CustomUserModel
 
 # Create your views here.
 class RegisterView(generics.CreateAPIView):
     permission_class = (AllowAny,)
-    query_set = User.objects.all()
+    query_set = CustomUserModel.objects.all()
     serializer_class = RegisterSerializer
 
 class UpdateProfileView(generics.UpdateAPIView):
-    queryset = User.objects.all()
+    queryset = CustomUserModel.objects.all()
     permission_class = (IsAuthenticated,)
     serializer_class = UpdateProfileSerializer
 
 class UpdatePasswordView(generics.UpdateAPIView):
-    queryset = User.objects.all()
+    queryset = CustomUserModel.objects.all()
     permission_class = (IsAuthenticated,)
     serializer_class = UpdatePasswordSerializer
 

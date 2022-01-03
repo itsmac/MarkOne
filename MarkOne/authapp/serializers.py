@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from rest_framework.response import Response
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
+from .models import CustomUserModel
 # from rest_framework.utils import serializer_helpers
 
 
@@ -15,12 +16,8 @@ class RegisterSerializer(serializers.ModelSerializer):
     confirm_password = serializers.CharField(write_only = True, required = True)
 
     class Meta:
-        model = User
-        fields = ('username','password','confirm_password','email','first_name','last_name')
-        extra_kwargs = {
-            'first_name' : {'required' : True},
-            'last_name' : {'required' : True}
-        }
+        model = CustomUserModel
+        fields = '__all__'
 
 
     def validate(self, attrs):
@@ -53,12 +50,8 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required = True)
 
     class Meta:
-        model = User
-        fields = ('username','email','first_name','last_name')
-        extra_kwargs = {
-        'first_name' : {'required' : True},
-        'last_name' : {'required' : True}
-        }
+        model = CustomUserModel
+        fields = '__all__'
         
    
     def validate_email(self, value):
@@ -67,11 +60,11 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"email" : "This email is already taken"})
         return value
 
-    def validate_username(self, value):
-        user = self.context['request'].user
-        if User.objects.exclude(pk = user.pk).filter(username = value).exists():
-            raise serializers.ValidationError({"username": "Username already taken"})
-        return value
+    # def validate_username(self, value):
+    #     user = self.context['request'].user
+    #     if User.objects.exclude(pk = user.pk).filter(username = value).exists():
+    #         raise serializers.ValidationError({"username": "Username already taken"})
+    #     return value
 
     def update(self, instance, validated_data):
         user = self.context['request'].user
